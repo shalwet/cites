@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PyCamp: Полный курс по Python</title>
+    <style>
+        :root {
+            --bg-dark: #1e1e1e;
+            --bg-panel: #252526;
+            --text-light: #d4d4d4;
+            --text-muted: #9cdcfe;
+            --accent: #007acc;
+            --success: #4ec9b0;
+            --danger: #f44747;
+            --font-main: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            --font-mono: 'Consolas', 'Courier New', monospace;
+        }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: var(--font-main);
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            line-height: 1.6;
+            display: grid;
+            grid-template-columns: 320px 1fr;
+            min-height: 100vh;
+        }
+        /* Левая панель — навигация */
+        .sidebar {
+            background-color: var(--bg-panel);
+            border-right: 1px solid #333;
+            overflow-y: auto;
+            padding: 20px 0;
+            position: fixed;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 320px;
+            z-index: 1000;
+        }
+        .sidebar h2 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: var(--accent);
+            font-size: 1.4rem;
+        }
+        .module {
+            margin-bottom: 25px;
+        }
+        .module-title {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 15px 10px 15px;
+            color: var(--text-muted);
+            font-weight: 600;
+            cursor: pointer;
+            user-select: none;
+        }
+        .module-title:hover { color: var(--text-light); }
+        .lessons {
+            list-style: none;
+            display: none;
+            padding-left: 15px;
+        }
+        .lessons.active { display: block; }
+        .lesson-item {
+            padding: 8px 15px;
+            margin: 4px 0;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.95rem;
+        }
+        .lesson-item:hover { background-color: #333; }
+        .lesson-item.active { background-color: var(--accent); color: #000; }
+        .lesson-item.completed { color: var(--success); }
+        .toggle-btn {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: var(--accent);
+            color: #000;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 6px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1100;
+        }
+        /* Правая панель — контент */
+        .main-content {
+            margin-left: 320px;
+            padding: 30px 40px;
+            overflow-y: auto;
+        }
+        .main-content h1 {
+            margin-bottom: 10px;
+            color: var(--accent);
+        }
+        .main-content p {
+            margin-bottom: 20px;
+            color: var(--text-muted);
+        }
+        .code-editor {
+            background-color: #1e1e1e;
+            border-radius: 6px;
+            padding: 15px;
+            font-family: var(--font-mono);
+            font-size: 0.95rem;
+            line-height: 1.5;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            min-height: 200px;
+            border: 1px solid #333;
+            position: relative;
+        }
+        .code-editor::before {
+            content: attr(data-lang);
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+        .output-box {
+            background-color: #000;
+            color: #00ff00;
+            border-radius: 6px;
+            padding: 15px;
+            font-family: var(--font-mono);
+            font-size: 0.95rem;
+            margin-top: 20px;
+            min-height: 100px;
+            border: 1px solid #003300;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        .task-panel {
+            background-color: var(--bg-panel);
+            border-left: 4px solid var(--accent);
+            padding: 20px;
+            margin-top: 30px;
+            border-radius: 0 6px 6px 0;
+        }
+        .task-panel h3 { margin-bottom: 15px; }
+        .task-panel ul { margin-bottom: 15px; padding-left: 20px; }
+        .run-btn {
+            background-color: var(--accent);
+            color: #000;
+            border: none;
+            padding: 12px 25px;
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .run-btn:hover { background-color: #005a9e; }
+        .run-btn:disabled { background-color: #555; cursor: not-allowed; }
+        .next-btn {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: var(--success);
+            color: #000;
+            text-decoration: none;
+            border-radius: 4px;
+            font-weight: 600;
+        }
+        .next-btn:hover { background-color: #3a9d84; }
+        .hidden { display: none; }
+        .completed-lesson::after {
+            content: " ✓";
+            color: var(--success);
+            font-weight: bold;
+        }
+        @media (max-width: 900px) {
+            .sidebar { transform: translateX(-100%); transition: transform 0.3s; }
+            .sidebar.active { transform: translateX(0); }
+            .main-content { margin-left: 0; }
+            .toggle-btn { display: flex; }
+        }
+    </style>
+</head>
+<body>
+
+<button class="toggle-btn" aria-label="Открыть меню">☰</button>
+
+<aside class="sidebar">
+    <h2>PyCamp</h2>
+    <div class="curriculum">
+        <div class="module">
+            <div class="module-title">1. Основы синтаксиса</div>
+            <ul class="lessons">
+                <li class="lesson-item active" data-lesson="1-1">1.1. Hello, World!</li>
+                <li class="lesson-item" data-lesson="1-2">1.2. Переменные и типы</li>
+                <li class="lesson-item" data-lesson="1-3">1.3. Ввод и вывод</li>
+            </ul>
+        </div>
+        <div class="module">
+            <div class="module-title">2. Управляющие конструкции</div>
+            <ul class="lessons">
+                <li class="lesson-item" data-lesson="2-1">2.1. Условный оператор if</li>
+                <li class="lesson-item" data-lesson="2-2">2.2. Циклы for и while</li>
+            </ul>
+        </div>
+        <div class="module">
+            <div class="module-title">3. Структуры данных</div>
+            <ul class="lessons">
+                <li class="lesson-item" data-lesson="3-1">3.1. Списки (Lists)</li>
+                <li class="lesson-item" data-lesson="3-2">3.2. Словари (Dictionaries)</li>
+            </ul>
+        </div>
+        <div class="module">
+            <div class="module-title">4. Функции</div>
+            <ul class="lessons">
+                <li class="lesson-item" data-lesson="4-1">4.1. Создание функций</li>
+                <li class="lesson-item" data-lesson="4-2">4.2. Аргументы и return</li>
+            </ul>
+        </div>
+    </div>
+</aside>
+
+<main class="main-content">
+    <div id="lesson-1-1">
+        <h1>1.1. Hello, World!</h1>
+        <p>Напишите программу, которая выводит на экран фразу "Привет, мир!". В Python для этого используется функция <code>print()</code>.</p>
+        
+        <div class="code-editor" data-lang="Python" id="editor-1-1">
+print("Привет, мир!")
+        </div>
+        <button class="run-btn" onclick="runCode('1-1')">▶ Выполнить</button>
+        <div class="output-box" id="output-1-1"></div>
+
+        <div class="task-panel">
+            <h3>Задание</h3>
+            <p>Измените код так, чтобы программа выводила ваше имя.</p>
+            <div class="hint-btn" onclick="toggleHint('1-1-hint')">💡 Подсказка</div>
+            <div class="hint-box hidden" id="1-1-hint">Замените строку внутри кавычек. Например: <code>print("Александра")</code></div>
+        </div>
+
+        <a href="#" class="next-btn" onclick="nextLesson('1-1', '1-2'); return false;">Далее: 1.2. Переменные и типы →</a>
+    </div>
+
+    <div id="lesson-1-2" class="hidden">
+        <h1>1.2. Переменные и типы</h1>
+        <p>Переменные — это именованные ячейки памяти. В Python не нужно явно указывать тип данных, он определяется автоматически.</p>
+        
+        <div class="code-editor" data-lang="Python" id="editor-1-2">
+name = "Алексей"
+age = 25
+height = 1.85
+is_student = True
+
+print(f"Имя: {name}, Возраст: {age}")
+        </div>
+        <button class="run-btn" onclick="runCode('1-2')">▶ Выполнить</button>
+        <div class="output-box" id="output-1-2"></div>
+
+        <div class="task-panel">
+            <h3>Задание</h3>
+            <p>Создайте переменную <code>city</code> со значением "Москва" и выведите фразу "Я живу в Москве".</p>
+            <div class="hint-btn" onclick="toggleHint('1-2-hint')">💡 Подсказка</div>
+            <div class="hint-box hidden" id="1-2-hint">Используйте f-строки: <code>print(f"Я живу в {city}")</code></div>
+        </div>
+
+        <a href="#" class="next-btn" onclick="nextLesson('1-2', '1-3'); return false;">Далее: 1.3. Ввод и вывод →</a>
+    </div>
+
+    <div id="lesson-1-3" class="hidden">
+        <h1>1.3. Ввод и вывод</h1>
+        <p>Для получения данных от пользователя используется функция <code>input()</code>. Она всегда возвращает строку.</p>
+        
+        <div class="code-editor" data-lang="Python" id="editor-1-3">
+name = input("Введите ваше имя: ")
+age = int(input("Введите ваш возраст: "))
+
+print(f"Привет, {name}! Тебе {age} лет.")
+        </div>
+        <button class="run-btn" onclick="runCode('1-3')">▶ Выполнить</button>
+        <div class="output-box" id="output-1-3"></div>
+
+        <div class="task-panel">
+            <h3>Задание</h3>
+            <p>Спросите у пользователя его любимый цвет и выведите ответ в формате "Ваш любимый цвет — [цвет]".</p>
+            <div class="hint-btn" onclick="toggleHint('1-3-hint')">💡 Подсказка</div>
+            <div class="hint-box hidden" id="1-3-hint">Используйте <code>input()</code> для вопроса и <code>print()</code> для вывода ответа.</div>
+        </div>
+
+        <a href="#" class="next-btn" onclick="nextLesson('1-3', '2-1'); return false;">Далее: 2.1. Условный оператор if →</a>
+    </div>
+
+    <div id="lesson-2-1" class="hidden">
+        <h1>2.1. Условный оператор if</h1>
+        <p>Оператор <code>if</code> позволяет выполнять код только при выполнении определенного условия.</p>
+        
+        <div class="code-editor" data-lang="Python" id="editor-2-1">
+age = int(input("Сколько вам лет? "))
+
+if age >= 18:
+    print("Доступ разрешен")
+else:
+    print("Доступ запрещен")
+        </div>
+        <button class="run-btn" onclick="runCode('2-1')">▶ Выполнить</button>
+        <div class="output-box" id="output-2-1"></div>
+
+        <div class="task-panel">
+            <h3>Задание</h3>
+            <p>Напишите программу, которая проверяет, является ли введенное число четным. Подсказка: используйте оператор <code>%</code> (остаток от деления).</p>
+            <div class="hint-btn" onclick="toggleHint('2-1-hint')">💡 Подсказка</div>
+            <div class="hint-box hidden" id="2-1-hint">Число четное, если <code>num % 2 == 0</code>.</div>
+        </div>
+
+        <a href="#" class="next-btn" onclick="nextLesson('2-1', '2-2'); return false;">Далее: 2.2. Циклы for и while →</a>
+    </div>
+
+    <div id="lesson-2-2" class="hidden">
+        <h1>2.2. Циклы for и while</h1>
+        <p>Циклы позволяют повторять один и тот же блок кода многократно.</p>
+        
+        <div class="code-editor" data-lang="Python" id="editor-2-2">
+# Цикл for (повторить 5 раз)
+for i in range(5):
+    print(f"Итерация {i + 1}")
+
+print("---")
+
+# Цикл while (пока условие истинно)
+counter = 0
+while counter < 3:
+    print(f"Счетчик: {counter}")
+    counter += 1
+        </div>
+        <button class="run-btn" onclick="runCode('2-2')">▶ Выполнить</button>
+        <div class="output-box" id="output-2-2"></div>
+
+        <div class="task-panel">
+            <h3>Задание</h3>
+            <p>Используя цикл <code>for</code>, выведите на экран числа от 1 до 10.</p>
+            <div class="hint-btn" onclick="toggleHint('2-2-hint')">💡 Подсказка</div>
+            <div class="hint-box hidden" id="2-2-hint">Функция <code>range(1, 11)</code> вернет числа от 1 до 10 включительно.</div>
+        </div>
+
+        <a href="#" class="next-btn" onclick="nextLesson('2-2', '3-1'); return false;">Далее: 3.1. Списки (Lists) →</a>
+    </div>
+
+    <div id="lesson-3-1" class="hidden">
+        <h1>3.1. Списки (Lists)</h1>
+        <p>Список — это упорядоченная изменяемая коллекция элементов.</p>
+        
+        <div class="code-editor" data-lang="Python" id="editor-3-1">
+fruits = ["яблоко", "банан", "вишня"]
+print(fruits[0])  # Доступ по индексу
+fruits.append("груша")  # Добавление элемента
+print(fruits)
+        </div>
+        <button class="run-btn" onclick="runCode('3-1')">▶ Выполнить</button>
+        <div class="output-box" id="output-3-1"></div>
+
+        <div class="task-panel">
+            <h3>Задание</h3>
+            <p>Создайте список из трех городов. Добавьте в конец списка еще один город и выведите итоговый список.</p>
+            <div class="hint-btn" onclick="toggleHint('3-1-hint')">💡 Подсказка</div>
+            <div class="hint-box hidden" id="3-1-hint">Метод <code>.append()</code> добавляет элемент в конец списка.</div>
+        </div>
+
+        <a href="#" class="next-btn" onclick="nextLesson('3-1', '3-2'); return false;">Далее: 3.2. Словари (Dictionaries) →</a>
+    </div>
+
+    <div id="lesson-3-2" class="hidden">
+        <h1>3.2. Словари (Dictionaries)</h1>
+        <p>Словарь — это неупорядоченная (до Python 3.7) коллекция пар "ключ: значение".</p>
+        
+        <div class="code-editor" data-lang="Python" id="editor-3-2">
+user = {
+    "name": "Иван",
+    "age": 30,
+    "city": "Казань"
+}
+print(user["name"])
+user["age"] = 31
+print(user)
+        </div>
+        <button class="run-btn" onclick="runCode('3-2')">▶ Выполнить</button>
+        <div class="output-box" id="output-3-2"></div>
+
+        <div class="task-panel">
+            <h3>Задание</h3>
+            <p>Создайте словарь с информацией о книге (название, автор, год). Измените год издания на более поздний.</p>
+            <div class="hint-btn" onclick="toggleHint('3-2-hint')">💡 Подсказка</div>
+            <div class="hint-box hidden" id="3-2-hint">Для изменения значения обратитесь к нему по ключу: <code>book["год"] = 2025</code>.</div>
+        </div>
+
+        <a href="#" class="next-btn" onclick="nextLesson('3-2', '4-1'); return false;">Далее: 4.1. Создание функций →</a>
+    </div>
+
+    <div id="lesson-4-1" class="hidden">
+        <h1>4.1. Создание функций</h1>
+        <p>Функции позволяют изолировать логику и переиспользовать код. Создаются с помощью ключевого слова <code>def</code>.</p>
+        
+        <div class="code-editor" data-lang="Python" id="editor-4-1">
+def greet(name):
+    return f"Привет, {name}!"
+
+print(greet("Александра"))
+print(greet("Мир"))
+        </div>
+        <button class="run-btn" onclick="runCode('4-1')">▶ Выполнить</button>
+        <div class="output-box" id="output-4-1"></div>
+
+        <div class="task-panel">
+            <h3>Задание</h3>
+            <p>Напишите функцию <code>square()</code>, которая принимает число и возвращает его квадрат.</p>
+            <div class="hint-btn" onclick="toggleHint('4-1-hint')">💡 Подсказка</div>
+            <div class="hint-box hidden" id="4-1-hint">Квадрат числа — это число, умноженное само на себя: <code>return n * n</code>.</div>
+        </div>
+
+        <a href="#" class="next-btn" onclick="nextLesson('4-1', '4-2'); return false;">Далее: 4.2. Аргументы и return →</a>
+    </div>
+
+    <div id="lesson-4-2" class="hidden">
+        <h1>4.2. Аргументы и return</h1>
+        <p>Функции могут принимать значения (аргументы) и возвращать результат своей работы.</p>
+        
+        <div class="code-editor" data-lang="Python" id="editor-4-2">
+def add(a, b):
+    return a + b
+
+x = 10
+y = 20
+result = add(x, y)
+print(f"Сумма {x} и {y} равна {result}")
+        </div>
+        <button class="run-btn" onclick="runCode('4-2')">▶ Выполнить</button>
+        <div class="output-box" id="output-4-2"></div>
+
+        <div class="task-panel">
+            <h3>Задание</h3>
+            <p>Напишите функцию <code>get_full_name()</code>, которая принимает имя и фамилию, а возвращает полное имя (через пробел).</p>
+            <div class="hint-btn" onclick="toggleHint('4-2-hint')">💡 Подсказка</div>
+            <div class="hint-box hidden" id="4-2-hint">Используйте f-строку внутри функции: <code>return f"{first} {last}"</code>.</div>
+        </div>
+
+        <div class="task-panel" style="background-color: #003300; border-left-color: var(--success);">
+            <h3>🎉 Поздравляем!</h3>
+            <p>Вы прошли базовый курс Python. Это отличная база для дальнейшего изучения веб-разработки, анализа данных или автоматизации.</p>
+        </div>
+    </div>
+</main>
+
+<script>
+    const sidebar = document.querySelector('.sidebar');
+    const toggleBtn = document.querySelector('.toggle-btn');
+    const lessonItems = document.querySelectorAll('.lesson-item');
+    const lessons = document.querySelectorAll('[id^="lesson-"]');
+
+    // Переключение сайдбара на мобильных
+    toggleBtn.addEventListener('click', () => {
+        sidebar.classList.toggle('active');
+    });
+
+    // Переключение модулей
+    document.querySelectorAll('.module-title').forEach(title => {
+        title.addEventListener('click', () => {
+            const lessonsList = title.nextElementSibling;
+            lessonsList.classList.toggle('active');
+        });
+    });
+
+    // Переключение уроков
+    lessonItems.forEach(item => {
+        item.addEventListener('click', () => {
+            // Обновление навигации
+            lessonItems.forEach(i => i.classList.remove('active'));
+            item.classList.add('active');
+
+            // Показ нужного урока
+            lessons.forEach(lesson => lesson.classList.add('hidden'));
+            const targetId = item.getAttribute('data-lesson');
+            document.getElementById('lesson-' + targetId).classList.remove('hidden');
+
+            // Прокрутка к началу урока
+            document.getElementById('lesson-' + targetId).scrollIntoView({behavior: 'smooth'});
+        });
+    });
+
+    // Выполнение кода (через песочницу Pyodide для безопасности)
+    async function runCode(lessonKey) {
+        const editor = document.getElementById('editor-' + lessonKey);
+        const output = document.getElementById('output-' + lessonKey);
+        const code = editor.innerText;
+        
+        // Блокируем кнопку на время выполнения
+        const runBtn = document.querySelector(`[onclick="runCode('${lessonKey}')"]`);
+        runBtn.disabled = true;
+        runBtn.textContent = '⌛ Выполняется...';
+
+        output.textContent = '⏳ Запуск интерпретатора...';
+
+        if (!window.pyodideLoading) {
+            window.pyodideLoading = true;
+            try {
+                if (!window.pyodide) {
+                    output.textContent = '📦 Загружаем Python...';
+                    import('https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js').then(async (module) => {
+                        window.pyodide = await module.loadPyodide({
+                            indexURL: "https://cdn.jsdelivr.net/pyodide/v0.26.4/full/"
+                        });
+                        output.textContent = '✅ Python готов. Выполнение...';
+                        await executePython(code, output, runBtn);
+                    });
+                } else {
+                    await executePython(code, output, runBtn);
+                }
+            } catch (e) {
+                output.textContent = '❌ Ошибка загрузки Pyodide: ' + e.message;
+                runBtn.disabled = false;
+                runBtn.textContent = '▶ Выполнить';
+            } finally {
+                window.pyodideLoading = false;
+            }
+        } else {
+            // Если Pyodide уже грузится, ждем и пробуем снова
+            setTimeout(() => runCode(lessonKey), 500);
+        }
+    }
+
+    async function executePython(code, output, runBtn) {
+        try {
+            let result = await window.pyodide.runPythonAsync(code);
+            if (result !== undefined && result !== null) {
+                output.textContent += '\n' + result;
+            }
+            // Помечаем урок как пройденный
+            const activeLesson = document.querySelector('.lesson-item.active');
+            if (activeLesson && !activeLesson.classList.contains('completed')) {
+                activeLesson.classList.add('completed');
+            }
+        } catch (e) {
+            output.textContent = '❌ Ошибка выполнения:\n' + e.message;
+        } finally {
+            runBtn.disabled = false;
+            runBtn.textContent = '▶ Выполнить';
+        }
+    }
+
+    // Переход к следующему уроку
+    function nextLesson(current, next) {
+        const currentItem = document.querySelector(`[data-lesson="${current}"]`);
+        const nextItem = document.querySelector(`[data-lesson="${next}"]`);
+        
+        if (currentItem) currentItem.classList.add('completed');
+        if (nextItem) {
+            nextItem.click();
+            // Прокрутка сайдбара к активному элементу
+            nextItem.scrollIntoView({block: 'center', behavior: 'smooth'});
+        }
+    }
+
+    // Подсказки
+    function toggleHint(hintId) {
+        document.getElementById(hintId).classList.toggle('hidden');
+    }
+
+    // Инициализация: показываем первый урок
+    document.getElementById('lesson-1-1').classList.remove('hidden');
+</script>
+</body>
+</html>
+</details>
+
+**Как устроен проект:**
+
+1. **Архитектура:** Весь проект (разметка, стили и логика) находится в одном файле `index.html`. Это полностью автономная страница, которую достаточно открыть в браузере.
+2. **Интерфейс:** Макет разделен на два столбца. Слева — фиксированная панель навигации с древовидной программой курса. Справа — основная область с теорией, редактором кода и консолью вывода. На узких экранах левая панель скрывается и вызывается кнопкой «☰».
+3. **Редактор кода:** В отличие от простого тега `<textarea>`, здесь используется блок `<div>` с атрибутом `contenteditable`. Это позволяет сохранить моноширинный шрифт и подсветку синтаксиса через CSS, а также дает пользователю привычный интерфейс для набора текста.
+4. **Выполнение кода:** Для запуска Python-кода прямо в браузере используется библиотека **Pyodide** (порт CPython на WebAssembly). 
+    * Код не отправляется на сервер, а выполняется локально на вашем устройстве, что безопасно.
+    * При первом запуске любого скрипта страница автоматически загрузит интерпретатор (около 5-10 МБ). В это время кнопка выполнения будет заблокирована, а в консоли появится статус загрузки.
+    * Вывод функций `print()` перенаправляется в блок `.output-box` под редактором.
+5. **Прогресс:** При успешном выполнении кода (отсутствии ошибок выполнения Python) урок в левой панели помечается галочкой и зеленым цветом. Кнопка «Далее» автоматически открывает следующий урок и прокручивает к нему панель навигации.
+6. **Обучающие элементы:** Каждый урок содержит панель с практическим заданием и кнопку для отображения подсказки.
+
+**Как использовать:**
+1. Скопируйте весь код из блока выше.
+2. Создайте на компьютере файл с именем `index.html`.
+3. Вставьте скопированный код в этот файл и сохраните.
+4. Откройте файл в любом современном браузере (Google Chrome, Firefox, Safari, Edge).
