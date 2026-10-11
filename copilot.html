@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#101712">
+  <title>Кодполе — полный курс Python</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #101712;
+      --panel: #171f19;
+      --panel-2: #1d2820;
+      --panel-3: #243128;
+      --line: #2c3930;
+      --text: #eff4ed;
+      --muted: #9aa99d;
+      --green: #b8f36c;
+      --green-dark: #26391d;
+      --orange: #ffb454;
+      --red: #ff8178;
+      --blue: #8ac7ff;
+      --radius: 18px;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-width: 320px; min-height: 100vh; background: var(--bg); color: var(--text); }
+    button, textarea, input { font: inherit; }
+    button { color: inherit; }
+    .app { min-height: 100vh; display: grid; grid-template-columns: 290px minmax(0, 1fr); }
+    .sidebar { position: sticky; top: 0; height: 100vh; overflow: auto; padding: 25px 18px 20px; border-right: 1px solid var(--line); background: #131a15; }
+    .brand { display: flex; align-items: center; gap: 11px; padding: 0 8px; margin-bottom: 30px; color: var(--text); text-decoration: none; }
+    .brand-mark { width: 39px; height: 39px; display: grid; place-items: center; border-radius: 13px; background: var(--green); color: #14200e; font-size: 22px; font-weight: 900; transform: rotate(-4deg); }
+    .brand-name { font-weight: 800; font-size: 18px; letter-spacing: -.5px; }
+    .brand-name span { color: var(--green); }
+    .side-caption, .eyebrow { color: var(--muted); font-size: 10px; font-weight: 800; letter-spacing: 1.4px; text-transform: uppercase; }
+    .side-caption { padding: 0 10px; margin: 0 0 12px; }
+    .progress-card { padding: 16px; border: 1px solid var(--line); border-radius: 15px; background: var(--panel); margin-bottom: 27px; }
+    .progress-top { display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: var(--muted); margin-bottom: 10px; }
+    .progress-top strong { color: var(--text); font-size: 13px; }
+    .progress-track { height: 7px; border-radius: 9px; overflow: hidden; background: var(--panel-3); }
+    .progress-fill { width: 0; height: 100%; border-radius: inherit; background: var(--green); transition: width .3s ease; }
+    .module-list { display: grid; gap: 5px; }
+    .module-button { display: grid; grid-template-columns: 29px 1fr auto; align-items: center; gap: 9px; width: 100%; padding: 9px 10px; border: 0; border-radius: 12px; color: var(--muted); text-align: left; background: transparent; cursor: pointer; transition: .18s; }
+    .module-button:hover, .module-button.active { color: var(--text); background: var(--panel-2); }
+    .module-number { width: 27px; height: 27px; display: grid; place-items: center; border: 1px solid var(--line); border-radius: 9px; font-size: 11px; font-weight: 700; }
+    .module-button.done .module-number { color: #172010; border-color: var(--green); background: var(--green); }
+    .module-label { font-size: 12px; font-weight: 650; line-height: 1.35; }
+    .module-count { color: #748378; font-size: 10px; }
+    .sidebar-foot { margin: 28px 8px 0; color: #718075; font-size: 11px; line-height: 1.6; }
+    .main { min-width: 0; padding: 0 44px 60px; }
+    .topbar { height: 76px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--line); }
+    .breadcrumbs { color: var(--muted); font-size: 12px; }
+    .breadcrumbs strong { color: var(--text); font-weight: 650; }
+    .top-actions { display: flex; align-items: center; gap: 12px; }
+    .streak { padding: 9px 12px; border: 1px solid var(--line); border-radius: 12px; color: var(--orange); background: var(--panel); font-size: 12px; font-weight: 700; }
+    .avatar { width: 35px; height: 35px; display: grid; place-items: center; border: 1px solid #53664d; border-radius: 50%; color: var(--green); background: var(--green-dark); font-size: 12px; font-weight: 800; }
+    .content { max-width: 1120px; margin: 0 auto; }
+    .dashboard { padding-top: 34px; }
+    .hero { position: relative; overflow: hidden; padding: 38px 40px; border: 1px solid #344638; border-radius: 23px; background: radial-gradient(ellipse at 85% 40%, rgba(184,243,108,.15), transparent 30%), linear-gradient(120deg, #1a261c, #19251b 55%, #202c20); }
+    .hero:after { content: "Py"; position: absolute; right: 8%; top: 4px; color: rgba(184,243,108,.08); font-size: 170px; font-weight: 900; letter-spacing: -17px; transform: rotate(-8deg); pointer-events: none; }
+    .hero-inner { position: relative; z-index: 1; max-width: 620px; }
+    .hero .eyebrow { color: var(--green); }
+    h1 { margin: 14px 0 12px; font-size: clamp(34px, 5vw, 53px); letter-spacing: -2.6px; line-height: 1.05; }
+    .hero p { max-width: 570px; margin: 0; color: #bdc9bc; font-size: 15px; line-height: 1.7; }
+    .hero-bottom { display: flex; align-items: center; gap: 13px; margin-top: 25px; }
+    .primary-button, .secondary-button, .run-button, .complete-button { display: inline-flex; justify-content: center; align-items: center; gap: 9px; border: 0; border-radius: 11px; padding: 12px 17px; font-weight: 800; font-size: 13px; cursor: pointer; transition: transform .15s, background .15s; }
+    .primary-button, .complete-button { color: #14200e; background: var(--green); }
+    .primary-button:hover, .complete-button:hover { transform: translateY(-1px); background: #c8ff80; }
+    .secondary-button { border: 1px solid var(--line); color: var(--text); background: var(--panel); }
+    .hero-note { color: #99a99a; font-size: 11px; }
+    .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin: 20px 0 38px; }
+    .stat-card { display: flex; gap: 13px; align-items: center; padding: 17px; border: 1px solid var(--line); border-radius: 15px; background: var(--panel); }
+    .stat-icon { width: 39px; height: 39px; display: grid; place-items: center; border-radius: 12px; color: var(--green); background: var(--green-dark); font-size: 17px; }
+    .stat-card:nth-child(2) .stat-icon { color: var(--orange); background: #3b2e1c; }
+    .stat-card:nth-child(3) .stat-icon { color: var(--blue); background: #1c3040; }
+    .stat-value { font-size: 18px; font-weight: 800; }
+    .stat-label { margin-top: 3px; color: var(--muted); font-size: 11px; }
+    .section-heading { display: flex; justify-content: space-between; align-items: end; margin-bottom: 16px; }
+    .section-heading h2 { margin: 0; font-size: 22px; letter-spacing: -.7px; }
+    .section-heading p { margin: 5px 0 0; color: var(--muted); font-size: 12px; }
+    .text-button { border: 0; padding: 6px 0; color: var(--green); background: none; font-size: 12px; font-weight: 750; cursor: pointer; }
+    .module-cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 13px; }
+    .module-card { display: flex; gap: 15px; min-height: 107px; padding: 18px; border: 1px solid var(--line); border-radius: 16px; text-align: left; background: var(--panel); cursor: pointer; transition: .2s; }
+    .module-card:hover { border-color: #53664d; background: var(--panel-2); transform: translateY(-2px); }
+    .module-card-number { flex: 0 0 38px; height: 38px; display: grid; place-items: center; border: 1px solid #39483c; border-radius: 12px; color: var(--green); background: #202d22; font-size: 12px; font-weight: 800; }
+    .module-card h3 { margin: 1px 0 6px; font-size: 14px; }
+    .module-card p { margin: 0 0 11px; color: var(--muted); font-size: 11px; line-height: 1.5; }
+    .module-meta { color: #819082; font-size: 10px; }
+    .lesson-page { display: none; padding-top: 30px; }
+    .lesson-page.visible { display: block; }
+    .lesson-header { margin-bottom: 24px; }
+    .lesson-header .eyebrow { color: var(--green); }
+    .lesson-header h1 { margin: 10px 0 8px; font-size: clamp(29px, 4vw, 41px); letter-spacing: -1.8px; }
+    .lesson-subtitle { color: var(--muted); font-size: 13px; }
+    .lesson-layout { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(360px, .95fr); gap: 20px; align-items: start; }
+    .lesson-copy, .workbench { border: 1px solid var(--line); border-radius: 17px; background: var(--panel); }
+    .lesson-copy { padding: 24px; }
+    .lesson-copy h2 { margin: 0 0 12px; font-size: 17px; }
+    .lesson-copy p { color: #bdc9be; font-size: 13px; line-height: 1.8; }
+    .lesson-copy .concept-box { margin: 19px 0; padding: 14px 16px; border-left: 3px solid var(--green); border-radius: 0 11px 11px 0; color: #d2ddce; background: #202b21; font-size: 12px; line-height: 1.7; }
+    .lesson-copy pre { overflow: auto; padding: 15px; border: 1px solid #2a382c; border-radius: 12px; color: #d3edbb; background: #111813; font: 12px/1.65 "Cascadia Code", Consolas, monospace; }
+    .task-box { margin-top: 21px; padding: 16px; border: 1px solid #414631; border-radius: 13px; background: #26291d; }
+    .task-box h3 { display: flex; align-items: center; gap: 8px; margin: 0 0 8px; color: var(--orange); font-size: 13px; }
+    .task-box p { margin: 0; font-size: 12px; line-height: 1.65; }
+    .workbench { overflow: hidden; }
+    .editor-top { display: flex; justify-content: space-between; align-items: center; padding: 13px 16px; border-bottom: 1px solid var(--line); }
+    .editor-file { display: flex; align-items: center; gap: 8px; color: #c6d0c6; font-size: 11px; font-weight: 700; }
+    .file-dot { width: 8px; height: 8px; border-radius: 50%; background: #63c7a2; }
+    .editor-hint { color: #819082; font-size: 10px; }
+    .code-editor { display: block; width: 100%; min-height: 280px; resize: vertical; padding: 18px; border: 0; outline: 0; color: #d3edbb; background: #111813; font: 13px/1.7 "Cascadia Code", Consolas, monospace; tab-size: 4; }
+    .editor-actions { display: flex; justify-content: space-between; align-items: center; padding: 12px 14px; border-top: 1px solid var(--line); }
+    .editor-actions small { max-width: 55%; color: #839185; font-size: 10px; line-height: 1.5; }
+    .run-button { padding: 10px 15px; color: #14200e; background: var(--green); font-size: 11px; }
+    .run-button:disabled { opacity: .65; cursor: wait; }
+    .console { min-height: 89px; padding: 13px 16px; border-top: 1px solid var(--line); background: #131a15; }
+    .console-title { margin-bottom: 8px; color: #829085; font-size: 9px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; }
+    .console-output { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; color: #cbd6cc; font: 11px/1.6 "Cascadia Code", Consolas, monospace; }
+    .console-output.success { color: var(--green); }
+    .console-output.error { color: var(--red); }
+    .lesson-footer { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 18px; }
+    .lesson-nav { display: flex; gap: 9px; }
+    .lesson-nav button { padding: 10px 13px; border: 1px solid var(--line); border-radius: 10px; color: var(--muted); background: var(--panel); font-size: 11px; font-weight: 700; cursor: pointer; }
+    .lesson-nav button:hover { color: var(--text); border-color: #586a55; }
+    .complete-button { padding: 11px 15px; font-size: 11px; }
+    .complete-button.completed { color: var(--green); border: 1px solid #456239; background: #1d2b1c; }
+    .mobile-menu { display: none; border: 1px solid var(--line); border-radius: 9px; padding: 8px 10px; background: var(--panel); cursor: pointer; }
+    .loading-dot { display: inline-block; width: 8px; height: 8px; margin-right: 7px; border-radius: 50%; background: var(--orange); animation: pulse 1s infinite alternate; }
+    @keyframes pulse { to { opacity: .25; } }
+    @media (max-width: 1060px) {
+      .main { padding-right: 28px; padding-left: 28px; }
+      .lesson-layout { grid-template-columns: 1fr; }
+      .code-editor { min-height: 220px; }
+    }
+    @media (max-width: 760px) {
+      .app { display: block; }
+      .sidebar { position: fixed; z-index: 5; left: 0; top: 0; width: 290px; transform: translateX(-102%); transition: transform .25s ease; box-shadow: 18px 0 50px #0008; }
+      .sidebar.open { transform: translateX(0); }
+      .main { padding: 0 18px 40px; }
+      .topbar { height: 64px; }
+      .mobile-menu { display: inline-flex; margin-right: 9px; }
+      .breadcrumbs { display: flex; align-items: center; }
+      .streak { padding: 8px; font-size: 10px; }
+      .avatar { width: 31px; height: 31px; }
+      .hero { padding: 29px 22px; }
+      .hero:after { right: 2%; top: 48px; font-size: 105px; }
+      .hero p { font-size: 13px; }
+      .hero-bottom { align-items: flex-start; flex-direction: column; }
+      .stats-grid { gap: 8px; margin-bottom: 30px; }
+      .stat-card { gap: 8px; padding: 12px 9px; }
+      .stat-icon { width: 31px; height: 31px; font-size: 14px; }
+      .stat-value { font-size: 15px; }
+      .stat-label { font-size: 9px; }
+      .module-cards { grid-template-columns: 1fr; }
+      .lesson-page { padding-top: 22px; }
+      .lesson-copy { padding: 19px; }
+      .lesson-footer { align-items: stretch; flex-direction: column; }
+      .lesson-nav button { flex: 1; }
+      .complete-button { width: 100%; }
+    }
+    @media (max-width: 390px) {
+      .stats-grid { grid-template-columns: 1fr; }
+      .stat-card { padding: 11px 13px; }
+      .editor-hint { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar" id="sidebar">
+      <a class="brand" href="#" id="brandHome" aria-label="Кодполе — главная">
+        <span class="brand-mark">⌘</span><span class="brand-name">код<span>поле</span></span>
+      </a>
+      <p class="side-caption">ТВОЙ МАРШРУТ</p>
+      <div class="progress-card">
+        <div class="progress-top"><strong>Путь Python-разработчика</strong><span id="progressText">0%</span></div>
+        <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+      </div>
+      <p class="side-caption">ПРОГРАММА КУРСА</p>
+      <nav class="module-list" id="moduleList" aria-label="Программа курса"></nav>
+      <div class="sidebar-foot">Бесплатный практический курс<br>От первого print() до своего проекта</div>
+    </aside>
+    <main class="main">
+      <header class="topbar">
+        <div class="breadcrumbs"><button class="mobile-menu" id="menuButton" aria-label="Открыть меню">☰</button><span>Python-трек&nbsp; / &nbsp;</span><strong id="breadcrumbCurrent">Обзор курса</strong></div>
+        <div class="top-actions"><span class="streak">✦&nbsp; Учись в своём темпе</span><span class="avatar">Py</span></div>
+      </header>
+      <div class="content">
+        <section class="dashboard" id="dashboard">
+          <div class="hero">
+            <div class="hero-inner">
+              <div class="eyebrow">ПОЛНЫЙ ИНТЕРАКТИВНЫЙ КУРС · 12 МОДУЛЕЙ</div>
+              <h1>От «Привет,<br>мир!» до Python-проекта.</h1>
+              <p>Освой Python с нуля: понятные объяснения, упражнения прямо в браузере и проекты для портфолио. Без скучной теории — учись, пиша настоящий код.</p>
+              <div class="hero-bottom"><button class="primary-button" id="startButton">Начать обучение <span>→</span></button><span class="hero-note">Около 35 часов · можно учиться бесплатно</span></div>
+            </div>
+          </div>
+          <div class="stats-grid">
+            <div class="stat-card"><div class="stat-icon">◈</div><div><div class="stat-value">12 модулей</div><div class="stat-label">От основ до проектов</div></div></div>
+            <div class="stat-card"><div class="stat-icon">⌘</div><div><div class="stat-value" id="lessonStat">36 уроков</div><div class="stat-label">Практика на каждом шаге</div></div></div>
+            <div class="stat-card"><div class="stat-icon">✓</div><div><div class="stat-value" id="doneStat">0 завершено</div><div class="stat-label">Прогресс хранится на устройстве</div></div></div>
+          </div>
+          <div class="section-heading"><div><h2>Учебная программа</h2><p>Последовательно проходи модули — знания будут складываться в систему.</p></div><button class="text-button" id="continueButton">Продолжить →</button></div>
+          <div class="module-cards" id="moduleCards"></div>
+        </section>
+        <section class="lesson-page" id="lessonPage">
+          <div class="lesson-header"><div class="eyebrow" id="lessonEyebrow"></div><h1 id="lessonTitle"></h1><div class="lesson-subtitle" id="lessonSubtitle"></div></div>
+          <div class="lesson-layout">
+            <article class="lesson-copy">
+              <h2>Разберёмся в теме</h2>
+              <div id="lessonText"></div>
+              <div class="concept-box" id="conceptBox"></div>
+              <h2>Пример</h2><pre id="exampleCode"></pre>
+              <div class="task-box"><h3><span>✦</span> Твоя практика</h3><p id="taskText"></p></div>
+            </article>
+            <section class="workbench" aria-label="Редактор Python">
+              <div class="editor-top"><div class="editor-file"><span class="file-dot"></span> main.py</div><span class="editor-hint">Python 3 · код выполняется в браузере</span></div>
+              <textarea id="codeEditor" class="code-editor" spellcheck="false" aria-label="Редактор кода Python"></textarea>
+              <div class="editor-actions"><small id="runtimeHint">Запускай код и проверяй результат. Первый запуск может занять несколько секунд.</small><button class="run-button" id="runButton">▶&nbsp; Запустить код</button></div>
+              <div class="console"><div class="console-title">Консоль</div><pre class="console-output" id="consoleOutput">Здесь появится результат выполнения…</pre></div>
+            </section>
+          </div>
+          <div class="lesson-footer">
+            <div class="lesson-nav"><button id="previousButton">← Предыдущий</button><button id="nextButton">Следующий →</button></div>
+            <button class="complete-button" id="completeButton">Отметить урок завершённым ✓</button>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+  <script>
+    const course = [
+      { title: "Старт: первые шаги", description: "Познакомься с Python, настрой мышление программиста и напиши первые команды.", lessons: [
+        { title: "Привет, Python!", text: "Python — язык программирования с понятным синтаксисом. Команда <code>print()</code> выводит текст и значения. Код выполняется сверху вниз.", concept: "Функция — готовая команда, которой можно поручить действие. Вызов <code>print('Привет!')</code> печатает переданный аргумент.", example: "print('Привет, мир!')\nprint(2 + 3)", task: "Выведи строку «Я изучаю Python» с помощью print().", starter: "print('Я изучаю Python')", test: "assert 'Я изучаю Python' in output", time: "8 мин" },
+        { title: "Комментарии и ошибки", text: "Комментарии начинаются с символа <code>#</code> и игнорируются интерпретатором. Сообщение об ошибке — подсказка: сначала читай последнюю строку traceback.", concept: "Синтаксическая ошибка мешает запуску. Ошибка времени выполнения возникает уже во время работы программы.", example: "# Это комментарий\nprint('Код читается сверху вниз')", task: "Добавь комментарий о том, что делает программа, и выведи число 42.", starter: "# Выводим ответ на главный вопрос\nprint(42)", test: "assert '42' in output", time: "7 мин" },
+        { title: "Переменные", text: "Переменная связывает имя со значением. Используй описательные имена в <code>snake_case</code>. Оператор <code>=</code> присваивает значение.", concept: "Имя переменной должно начинаться с буквы или подчёркивания. Регистр важен: <code>score</code> и <code>Score</code> — разные имена.", example: "player_name = 'Мира'\nscore = 10\nprint(player_name, score)", task: "Создай переменную <code>language</code> со значением <code>'Python'</code> и выведи её.", starter: "language = 'Python'\nprint(language)", test: "assert language == 'Python' and 'Python' in output", time: "9 мин" }
+      ]},
+      { title: "Данные и выражения", description: "Числа, строки, преобразования типов и форматирование текста.", lessons: [
+        { title: "Числа и арифметика", text: "Python поддерживает целые числа <code>int</code> и числа с плавающей точкой <code>float</code>. Для деления есть <code>/</code>, целочисленного деления — <code>//</code>, остатка — <code>%</code>.", concept: "Возведение в степень записывается <code>**</code>. Скобки позволяют явно управлять порядком вычислений.", example: "price = 120\ncount = 3\nprint(price * count)\nprint(17 % 5)", task: "Вычисли остаток от деления 17 на 5 и сохрани его в <code>remainder</code>.", starter: "remainder = 17 % 5\nprint(remainder)", test: "assert remainder == 2", time: "9 мин" },
+        { title: "Строки и методы", text: "Строки заключаются в кавычки. Их можно объединять, получать длину через <code>len()</code> и преобразовывать методами вроде <code>.upper()</code>.", concept: "Строки неизменяемы: метод возвращает новую строку, а не меняет исходную.", example: "city = 'Казань'\nprint(city.upper())\nprint(len(city))", task: "Переведи строку <code>'python'</code> в верхний регистр и сохрани результат в <code>shout</code>.", starter: "word = 'python'\nshout = word.upper()\nprint(shout)", test: "assert shout == 'PYTHON'", time: "10 мин" },
+        { title: "Ввод и f-строки", text: "Функция <code>input()</code> читает строку от пользователя. F-строки с префиксом <code>f</code> подставляют значения выражений в фигурных скобках.", concept: "Результат <code>input()</code> всегда строка. Чтобы работать с числом, преобразуй его: <code>age = int(input())</code>.", example: "name = 'Лена'\nage = 20\nprint(f'{name}: {age} лет')", task: "Создай f-строку <code>message</code>, в которой переменная <code>name</code> равна <code>'Аня'</code>, а затем выведи приветствие.", starter: "name = 'Аня'\nmessage = f'Привет, {name}!'\nprint(message)", test: "assert 'Аня' in message", time: "10 мин" }
+      ]},
+      { title: "Логика и ветвления", description: "Научи программу принимать решения с условиями и логическими операторами.", lessons: [
+        { title: "Условия if / else", text: "Конструкция <code>if</code> выполняет блок, только если условие истинно. В Python блоки обозначаются отступами, обычно четырьмя пробелами.", concept: "После условия ставится двоеточие. <code>elif</code> добавляет альтернативную проверку, <code>else</code> задаёт запасной вариант.", example: "temperature = 24\nif temperature > 20:\n    print('Тепло')\nelse:\n    print('Прохладно')", task: "Если <code>age</code> не меньше 18, присвой переменной <code>status</code> значение <code>'adult'</code>, иначе — <code>'child'</code>.", starter: "age = 20\nif age >= 18:\n    status = 'adult'\nelse:\n    status = 'child'\nprint(status)", test: "assert status == 'adult'", time: "11 мин" },
+        { title: "Сравнения и логика", text: "Сравнения <code>==</code>, <code>!=</code>, <code>&lt;</code>, <code>&gt;=</code> возвращают <code>True</code> или <code>False</code>. Условия можно комбинировать через <code>and</code>, <code>or</code> и <code>not</code>.", concept: "Не путай присваивание <code>=</code> и сравнение <code>==</code>. Проверку вхождения в коллекцию выполняет оператор <code>in</code>.", example: "score = 85\npassed = score >= 60 and score <= 100\nprint(passed)", task: "Создай <code>is_weekend</code>, проверив, что <code>day</code> равен <code>'сб'</code> или <code>'вс'</code>.", starter: "day = 'сб'\nis_weekend = day == 'сб' or day == 'вс'\nprint(is_weekend)", test: "assert is_weekend is True", time: "10 мин" },
+        { title: "Практика: калькулятор скидки", text: "Собери условие из сравнения цены и ветвления. Несколько ветвей удобно выстраивать как <code>if / elif / else</code>.", concept: "Сначала проверяй более специфичные условия. Иначе ранняя ветка может перехватить случаи, предназначенные для следующих.", example: "total = 2500\nif total >= 2000:\n    discount = 0.15\nelse:\n    discount = 0.05\nprint(total * (1 - discount))", task: "Для заказа от 2000 рублей установи скидку 15%, иначе 5%. Запиши её в <code>discount</code>.", starter: "total = 2500\nif total >= 2000:\n    discount = 0.15\nelse:\n    discount = 0.05\nprint(discount)", test: "assert discount == 0.15", time: "12 мин" }
+      ]},
+      { title: "Циклы и последовательности", description: "Повторение действий, списки и полезные операции над коллекциями.", lessons: [
+        { title: "Цикл for и range", text: "Цикл <code>for</code> перебирает элементы последовательности. <code>range(stop)</code> создаёт числа от нуля до stop, не включая stop.", concept: "Можно указать начало, конец и шаг: <code>range(2, 10, 2)</code>. Не создавай счётчик вручную, если можно перебрать коллекцию.", example: "for number in range(1, 4):\n    print(number)", task: "Посчитай сумму чисел от 1 до 5 включительно и сохрани её в <code>total</code>.", starter: "total = 0\nfor number in range(1, 6):\n    total += number\nprint(total)", test: "assert total == 15", time: "11 мин" },
+        { title: "Цикл while", text: "Цикл <code>while</code> повторяется, пока условие истинно. Изменяй состояние внутри цикла, чтобы он завершился.", concept: "Бесконечный цикл возникает, если условие никогда не становится ложным. <code>break</code> завершает цикл, <code>continue</code> начинает следующую итерацию.", example: "count = 3\nwhile count > 0:\n    print(count)\n    count -= 1", task: "Используй цикл, чтобы накопить сумму чётных чисел от 2 до 10 в переменной <code>total</code>.", starter: "total = 0\nnumber = 2\nwhile number <= 10:\n    total += number\n    number += 2\nprint(total)", test: "assert total == 30", time: "11 мин" },
+        { title: "Списки", text: "Список хранит упорядоченную изменяемую коллекцию. Индексация начинается с нуля, а <code>append()</code> добавляет элемент в конец.", concept: "Срез <code>items[1:3]</code> берёт элементы с индексов 1 и 2. Отрицательный индекс <code>-1</code> обозначает последний элемент.", example: "colors = ['синий', 'зелёный']\ncolors.append('жёлтый')\nprint(colors[-1])", task: "Создай список <code>squares</code> с квадратами чисел от 1 до 5.", starter: "squares = []\nfor number in range(1, 6):\n    squares.append(number ** 2)\nprint(squares)", test: "assert squares == [1, 4, 9, 16, 25]", time: "12 мин" }
+      ]},
+      { title: "Коллекции данных", description: "Кортежи, множества, словари и генераторы коллекций.", lessons: [
+        { title: "Кортежи и распаковка", text: "Кортеж — упорядоченная неизменяемая последовательность. Он подходит для фиксированных наборов значений и удобен для распаковки.", concept: "Кортеж из одного элемента записывается с запятой: <code>(42,)</code>. Несколько значений можно присвоить одновременно: <code>x, y = point</code>.", example: "point = (4, 7)\nx, y = point\nprint(x, y)", task: "Распакуй кортеж <code>pair</code> в переменные <code>first</code> и <code>second</code>.", starter: "pair = ('лево', 'право')\nfirst, second = pair\nprint(first, second)", test: "assert first == 'лево' and second == 'право'", time: "9 мин" },
+        { title: "Множества", text: "Множество хранит только уникальные элементы. Оно удобно для удаления повторов и быстрых проверок вхождения.", concept: "Операции <code>|</code>, <code>&amp;</code>, <code>-</code> вычисляют объединение, пересечение и разность множеств.", example: "tags = {'python', 'web', 'python'}\nprint(tags)\nprint('web' in tags)", task: "Удали повторы из <code>numbers</code> с помощью множества и сохрани результат в <code>unique_numbers</code>.", starter: "numbers = [2, 2, 3, 5, 3]\nunique_numbers = set(numbers)\nprint(unique_numbers)", test: "assert unique_numbers == {2, 3, 5}", time: "9 мин" },
+        { title: "Словари", text: "Словарь сопоставляет ключи и значения. Получай значение по ключу или безопасно используй <code>get()</code>.", concept: "Ключи словаря должны быть хешируемыми. Перебор <code>.items()</code> даёт пары ключ-значение.", example: "user = {'name': 'Олег', 'level': 3}\nuser['level'] += 1\nprint(user.get('name'))", task: "Создай словарь <code>profile</code> с ключами <code>name</code> и <code>level</code>.", starter: "profile = {'name': 'Ира', 'level': 1}\nprint(profile['name'])", test: "assert profile['name'] == 'Ира' and profile['level'] == 1", time: "11 мин" }
+      ]},
+      { title: "Функции и модули", description: "Переиспользуемый код, аргументы, область видимости и импорт.", lessons: [
+        { title: "Создание функций", text: "Функция объявляется через <code>def</code>. Параметры задают входные данные, а <code>return</code> возвращает результат.", concept: "Не путай <code>print()</code> с <code>return</code>: печать показывает значение, возврат передаёт его вызывающему коду.", example: "def greet(name):\n    return f'Привет, {name}!'\n\nprint(greet('Тим'))", task: "Напиши функцию <code>square(n)</code>, возвращающую квадрат числа.", starter: "def square(n):\n    return n ** 2\n\nprint(square(6))", test: "assert square(6) == 36", time: "12 мин" },
+        { title: "Аргументы и значения по умолчанию", text: "Функции могут принимать именованные аргументы и значения по умолчанию. Именованные аргументы делают вызов понятнее.", concept: "Изменяемые значения вроде списков не стоит использовать как значение по умолчанию: оно сохраняется между вызовами.", example: "def greet(name, greeting='Привет'):\n    return f'{greeting}, {name}!'\n\nprint(greet('Майя', greeting='Здравствуй'))", task: "Создай функцию <code>multiply</code> с двумя аргументами, которая возвращает их произведение.", starter: "def multiply(a, b):\n    return a * b\n\nprint(multiply(4, 5))", test: "assert multiply(4, 5) == 20", time: "12 мин" },
+        { title: "Модули и стандартная библиотека", text: "Модуль — файл с Python-кодом. Импортируй стандартные инструменты, например <code>math</code>, <code>random</code> или <code>datetime</code>.", concept: "Запись <code>import math</code> и вызов <code>math.sqrt(9)</code> явно показывают, откуда пришла функция.", example: "import math\nprint(math.ceil(4.2))\nprint(math.pi)", task: "Импортируй <code>math</code> и сохрани значение квадратного корня из 81 в <code>root</code>.", starter: "import math\nroot = math.sqrt(81)\nprint(root)", test: "assert root == 9", time: "10 мин" }
+      ]},
+      { title: "Строки, файлы и ошибки", description: "Обработка текста, исключения, чтение и запись файлов.", lessons: [
+        { title: "Обработка текста", text: "Сочетай строковые методы: <code>strip()</code> удаляет пробелы по краям, <code>split()</code> делит строку, <code>join()</code> соединяет элементы.", concept: "Форматирование чисел в f-строках позволяет задать точность: <code>f'{price:.2f}'</code>.", example: "raw = '  яблоко, груша  '\nitems = raw.strip().split(', ')\nprint(items)", task: "Раздели строку <code>csv</code> по запятой и сохрани список в <code>parts</code>.", starter: "csv = 'кофе,чай,какао'\nparts = csv.split(',')\nprint(parts)", test: "assert parts == ['кофе', 'чай', 'какао']", time: "10 мин" },
+        { title: "Исключения", text: "Исключения сообщают о проблемах во время выполнения. Обрабатывай ожидаемые ошибки блоком <code>try / except</code>.", concept: "Лови конкретные исключения, например <code>ValueError</code>. Широкий <code>except:</code> может скрыть настоящие ошибки.", example: "text = '42'\ntry:\n    number = int(text)\nexcept ValueError:\n    number = 0\nprint(number)", task: "Преобразуй <code>text</code> в число внутри try/except и при ValueError присвой <code>number</code> значение 0.", starter: "text = '42'\ntry:\n    number = int(text)\nexcept ValueError:\n    number = 0\nprint(number)", test: "assert number == 42", time: "12 мин" },
+        { title: "Файлы и контекстный менеджер", text: "Открывай файлы через <code>open()</code>. Конструкция <code>with</code> гарантирует, что файл будет закрыт даже при ошибке.", concept: "Режимы: <code>'r'</code> — чтение, <code>'w'</code> — перезапись, <code>'a'</code> — добавление. Для текста указывай кодировку UTF-8.", example: "with open('notes.txt', 'w', encoding='utf-8') as file:\n    file.write('Изучаю Python')", task: "Запиши текст <code>'Ура!'</code> в файл <code>hello.txt</code> через <code>with open</code>.", starter: "with open('hello.txt', 'w', encoding='utf-8') as file:\n    file.write('Ура!')\nprint('Файл сохранён')", test: "assert 'Файл сохранён' in output", time: "13 мин" }
+      ]},
+      { title: "Продвинутый Python", description: "Генераторы, включения, декораторы и объектно-ориентированный подход.", lessons: [
+        { title: "Включения списков", text: "Включение списка создаёт коллекцию компактно: <code>[выражение for элемент in последовательность if условие]</code>.", concept: "Используй включения для простых преобразований. Если логика сложная, обычный цикл читается лучше.", example: "cubes = [n ** 3 for n in range(5)]\neven = [n for n in range(10) if n % 2 == 0]\nprint(even)", task: "Создай список <code>evens</code> из чётных чисел от 0 до 10 включительно через включение списка.", starter: "evens = [n for n in range(11) if n % 2 == 0]\nprint(evens)", test: "assert evens == [0, 2, 4, 6, 8, 10]", time: "11 мин" },
+        { title: "Классы и объекты", text: "Класс описывает собственный тип данных, а объект — конкретный экземпляр. Метод <code>__init__</code> задаёт начальные свойства.", concept: "Параметр <code>self</code> ссылается на текущий объект. Методы обращаются к его атрибутам через <code>self.name</code>.", example: "class Dog:\n    def __init__(self, name):\n        self.name = name\n\npet = Dog('Бим')\nprint(pet.name)", task: "Создай класс <code>Book</code> с атрибутом <code>title</code> в конструкторе.", starter: "class Book:\n    def __init__(self, title):\n        self.title = title\n\nbook = Book('Python просто')\nprint(book.title)", test: "assert book.title == 'Python просто'", time: "14 мин" },
+        { title: "Итераторы и генераторы", text: "Генераторная функция использует <code>yield</code>, чтобы выдавать значения по одному. Это экономит память для больших последовательностей.", concept: "Вызов генератора сам по себе не запускает его целиком: значения вычисляются при переборе.", example: "def countdown(n):\n    while n > 0:\n        yield n\n        n -= 1\n\nprint(list(countdown(3)))", task: "Напиши генератор <code>count_up(n)</code>, который выдаёт числа от 1 до n.", starter: "def count_up(n):\n    for number in range(1, n + 1):\n        yield number\n\nprint(list(count_up(4)))", test: "assert list(count_up(4)) == [1, 2, 3, 4]", time: "13 мин" }
+      ]},
+      { title: "Инструменты разработчика", description: "Тестирование, окружения, пакеты и основы сетевых запросов.", lessons: [
+        { title: "Тестирование и assert", text: "Тесты автоматически проверяют поведение кода. Оператор <code>assert</code> останавливает выполнение, если условие ложно.", concept: "Тестируй обычные случаи, граничные значения и ошибки. Маленькие тесты помогают менять код с уверенностью.", example: "def double(n):\n    return n * 2\n\nassert double(4) == 8\nprint('Тест пройден')", task: "Напиши функцию <code>is_positive(n)</code> и проверь, что она верно распознаёт положительное число.", starter: "def is_positive(n):\n    return n > 0\n\nassert is_positive(3)\nprint('Проверено')", test: "assert is_positive(3) is True and is_positive(-1) is False", time: "12 мин" },
+        { title: "Окружения и пакеты", text: "Виртуальное окружение изолирует зависимости проекта. В обычной разработке его создают командой <code>python -m venv .venv</code>, пакеты устанавливают через pip.", concept: "Файл <code>requirements.txt</code> фиксирует зависимости. Не устанавливай пакеты глобально, если проекту нужно отдельное окружение.", example: "# В терминале:\n# python -m venv .venv\n# .venv\\Scripts\\activate\n# python -m pip install requests", task: "Составь список <code>requirements</code> из названий пакетов <code>'requests'</code> и <code>'pytest'</code>.", starter: "requirements = ['requests', 'pytest']\nprint(requirements)", test: "assert requirements == ['requests', 'pytest']", time: "9 мин" },
+        { title: "JSON и веб-данные", text: "JSON — распространённый формат обмена данными. Модуль <code>json</code> преобразует Python-словари в JSON и обратно.", concept: "В этом браузерном тренажёре сетевые запросы ограничены. В настоящем проекте запросы удобно выполнять библиотекой requests.", example: "import json\nuser = {'name': 'Ли', 'active': True}\nencoded = json.dumps(user, ensure_ascii=False)\nprint(encoded)", task: "Преобразуй словарь <code>data</code> в JSON-строку <code>json_text</code> с помощью <code>json.dumps()</code>.", starter: "import json\ndata = {'course': 'Python', 'lessons': 36}\njson_text = json.dumps(data)\nprint(json_text)", test: "assert 'Python' in json_text and '36' in json_text", time: "12 мин" }
+      ]},
+      { title: "Проекты и следующий шаг", description: "Закрепи навыки в небольших проектах и составь план развития.", lessons: [
+        { title: "Проект: анализатор оценок", text: "Проект соединяет коллекции, циклы, функции и условия. Сначала раздели задачу на шаги: получить данные, вычислить результат, показать итог.", concept: "Старайся писать небольшие функции с одной обязанностью. Это облегчает проверку и повторное использование.", example: "scores = [5, 4, 3, 5]\naverage = sum(scores) / len(scores)\nprint(f'Средний балл: {average:.1f}')", task: "Посчитай среднее значение списка <code>scores</code> и сохрани его в переменную <code>average</code>.", starter: "scores = [5, 4, 3, 5]\naverage = sum(scores) / len(scores)\nprint(average)", test: "assert average == 4.25", time: "15 мин" },
+        { title: "Проект: текстовая игра", text: "Текстовая игра строится вокруг состояния и выбора пользователя. Даже простая игра учит превращать правила в последовательные проверки.", concept: "Для повторяющихся ходов используй цикл, а для действий игрока — отдельные функции. Проверяй некорректный ввод.", example: "secret = 7\nguess = 5\nif guess == secret:\n    result = 'Угадал!'\nelse:\n    result = 'Попробуй ещё'\nprint(result)", task: "Сравни <code>guess</code> и <code>secret</code> и запиши в <code>result</code> «Угадал!» при совпадении.", starter: "secret = 7\nguess = 7\nif guess == secret:\n    result = 'Угадал!'\nelse:\n    result = 'Попробуй ещё'\nprint(result)", test: "assert result == 'Угадал!'", time: "15 мин" },
+        { title: "Куда двигаться дальше", text: "Теперь у тебя есть база языка. Выбери направление: веб-разработка (Django, FastAPI), автоматизация, анализ данных (pandas) или машинное обучение.", concept: "Собери проект, который решает реальную маленькую задачу. Добавь README, тесты и историю изменений — так появится первое портфолио.", example: "next_steps = ['повторить основы', 'сделать проект', 'написать тесты']\nfor step in next_steps:\n    print(f'→ {step}')", task: "Создай список <code>next_steps</code> хотя бы из трёх шагов развития и выведи его.", starter: "next_steps = ['практиковаться', 'создать проект', 'делиться результатом']\nprint(next_steps)", test: "assert len(next_steps) >= 3", time: "8 мин" }
+      ]}
+    ];
+
+    const STORAGE_KEY = "kodpole-python-progress-v1";
+    let progress = readProgress();
+    let currentLesson = null;
+    let pyodidePromise = null;
+    const $ = (selector) => document.querySelector(selector);
+    const allLessons = course.flatMap((module, moduleIndex) => module.lessons.map((lesson, lessonIndex) => ({
+      ...lesson, moduleIndex, lessonIndex, id: `${moduleIndex}-${lessonIndex}`
+    })));
+
+    function readProgress() {
+      try {
+        return JSON.parse(localStorage.getItem(STORAGE_KEY)) || { completed: [], drafts: {} };
+      } catch (error) {
+        console.error("Не удалось прочитать прогресс обучения:", error);
+        return { completed: [], drafts: {} };
+      }
+    }
+    function saveProgress() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(progress));
+      } catch (error) {
+        console.error("Не удалось сохранить прогресс обучения:", error);
+        showConsole("Браузер не смог сохранить прогресс. Разреши хранение данных для этой страницы.", "error");
+      }
+      updateProgress();
+    }
+    function updateProgress() {
+      const done = progress.completed.length;
+      const percent = Math.round(done / allLessons.length * 100);
+      $("#progressText").textContent = `${percent}%`;
+      $("#progressFill").style.width = `${percent}%`;
+      $("#doneStat").textContent = `${done} завершено`;
+      $("#lessonStat").textContent = `${allLessons.length} уроков`;
+      document.querySelectorAll(".module-button").forEach((button, index) => {
+        const count = course[index].lessons.filter((lesson, lessonIndex) => progress.completed.includes(`${index}-${lessonIndex}`)).length;
+        button.classList.toggle("done", count === course[index].lessons.length);
+        button.querySelector(".module-count").textContent = `${count}/${course[index].lessons.length}`;
+      });
+    }
+    function renderNavigation() {
+      $("#moduleList").innerHTML = course.map((module, index) =>
+        `<button class="module-button" data-module="${index}"><span class="module-number">${String(index + 1).padStart(2, "0")}</span><span class="module-label">${module.title}</span><span class="module-count">0/${module.lessons.length}</span></button>`
+      ).join("");
+      $("#moduleCards").innerHTML = course.map((module, index) => {
+        const done = module.lessons.filter((lesson, lessonIndex) => progress.completed.includes(`${index}-${lessonIndex}`)).length;
+        return `<button class="module-card" data-open-module="${index}"><span class="module-card-number">${String(index + 1).padStart(2, "0")}</span><span><h3>${module.title}</h3><p>${module.description}</p><span class="module-meta">${module.lessons.length} урока · ${done ? `${done} завершено` : "Начать модуль"} →</span></span></button>`;
+      }).join("");
+      updateProgress();
+    }
+    function openLesson(id) {
+      const lesson = allLessons.find((item) => item.id === id);
+      if (!lesson) return;
+      currentLesson = lesson;
+      $("#dashboard").style.display = "none";
+      $("#lessonPage").classList.add("visible");
+      $("#breadcrumbCurrent").textContent = lesson.title;
+      $("#lessonEyebrow").textContent = `МОДУЛЬ ${String(lesson.moduleIndex + 1).padStart(2, "0")} · ${course[lesson.moduleIndex].title.toUpperCase()}`;
+      $("#lessonTitle").textContent = lesson.title;
+      $("#lessonSubtitle").textContent = `Урок ${lesson.lessonIndex + 1} из ${course[lesson.moduleIndex].lessons.length} · ${lesson.time} · интерактивная практика`;
+      $("#lessonText").innerHTML = `<p>${lesson.text}</p>`;
+      $("#conceptBox").innerHTML = `<strong>Запомни:</strong> ${lesson.concept}`;
+      $("#exampleCode").textContent = lesson.example;
+      $("#taskText").innerHTML = lesson.task;
+      $("#codeEditor").value = progress.drafts[id] ?? lesson.starter;
+      $("#consoleOutput").textContent = "Запусти код, чтобы увидеть результат и проверить упражнение.";
+      $("#consoleOutput").className = "console-output";
+      $("#completeButton").textContent = progress.completed.includes(id) ? "Урок завершён ✓" : "Отметить урок завершённым ✓";
+      $("#completeButton").classList.toggle("completed", progress.completed.includes(id));
+      $("#previousButton").disabled = allLessons[allLessons.indexOf(lesson) - 1] === undefined;
+      $("#nextButton").disabled = allLessons[allLessons.indexOf(lesson) + 1] === undefined;
+      document.querySelectorAll(".module-button").forEach((button) => button.classList.toggle("active", Number(button.dataset.module) === lesson.moduleIndex));
+      $("#sidebar").classList.remove("open");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+    function goHome() {
+      $("#lessonPage").classList.remove("visible");
+      $("#dashboard").style.display = "";
+      $("#breadcrumbCurrent").textContent = "Обзор курса";
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+    function showConsole(message, state = "") {
+      const output = $("#consoleOutput");
+      output.textContent = message;
+      output.className = `console-output ${state}`;
+    }
+    function loadPython() {
+      if (pyodidePromise) return pyodidePromise;
+      pyodidePromise = new Promise((resolve, reject) => {
+        if (window.loadPyodide) {
+          window.loadPyodide({ indexURL: "https://cdn.jsdelivr.net/pyodide/v0.27.7/full/" }).then(resolve, reject);
+          return;
+        }
+        const script = document.createElement("script");
+        script.src = "https://cdn.jsdelivr.net/pyodide/v0.27.7/full/pyodide.js";
+        script.onload = () => window.loadPyodide({ indexURL: "https://cdn.jsdelivr.net/pyodide/v0.27.7/full/" }).then(resolve, reject);
+        script.onerror = () => reject(new Error("Не удалось загрузить Python из CDN. Проверь подключение к интернету и повтори запуск."));
+        document.head.appendChild(script);
+      });
+      return pyodidePromise;
+    }
+    async function runCode() {
+      if (!currentLesson) return;
+      const button = $("#runButton");
+      const code = $("#codeEditor").value;
+      progress.drafts[currentLesson.id] = code;
+      saveProgress();
+      button.disabled = true;
+      button.innerHTML = '<span class="loading-dot"></span> Запускаю Python…';
+      showConsole("Загружаю Python-среду. Первый запуск может занять некоторое время…");
+      try {
+        const pyodide = await loadPython();
+        let output = "";
+        pyodide.setStdout({ batched: (text) => { output += `${text}\n`; } });
+        pyodide.setStderr({ batched: (text) => { output += `${text}\n`; } });
+        try {
+          await pyodide.runPythonAsync(`${code}\n\n${currentLesson.test}\nprint("__KODPOLE_TESTS_PASSED__")`);
+          output = output.replace("__KODPOLE_TESTS_PASSED__\n", "");
+          if (!progress.completed.includes(currentLesson.id)) {
+            progress.completed.push(currentLesson.id);
+            saveProgress();
+            $("#completeButton").textContent = "Урок завершён ✓";
+            $("#completeButton").classList.add("completed");
+            renderNavigation();
+          }
+          showConsole(`${output || "Код выполнен без ошибок."}\n✓ Упражнение пройдено!`, "success");
+        } catch (error) {
+          const details = String(error).replace(/^PythonError:\s*/, "");
+          showConsole(`${output}${details}\n\nПодсказка: проверь условие упражнения и попробуй ещё раз.`, "error");
+        }
+      } catch (error) {
+        pyodidePromise = null;
+        showConsole(error.message || "Не удалось запустить Python-среду.", "error");
+      } finally {
+        button.disabled = false;
+        button.textContent = "▶  Запустить код";
+      }
+    }
+    function navigateLesson(offset) {
+      if (!currentLesson) return;
+      const next = allLessons[allLessons.indexOf(currentLesson) + offset];
+      if (next) openLesson(next.id);
+    }
+    $("#moduleList").addEventListener("click", (event) => {
+      const button = event.target.closest("[data-module]");
+      if (button) openLesson(`${button.dataset.module}-0`);
+    });
+    $("#moduleCards").addEventListener("click", (event) => {
+      const button = event.target.closest("[data-open-module]");
+      if (button) openLesson(`${button.dataset.openModule}-0`);
+    });
+    $("#startButton").addEventListener("click", () => openLesson(allLessons[0].id));
+    $("#continueButton").addEventListener("click", () => {
+      const next = allLessons.find((lesson) => !progress.completed.includes(lesson.id)) || allLessons[0];
+      openLesson(next.id);
+    });
+    $("#brandHome").addEventListener("click", (event) => { event.preventDefault(); goHome(); });
+    $("#menuButton").addEventListener("click", () => $("#sidebar").classList.toggle("open"));
+    $("#runButton").addEventListener("click", runCode);
+    $("#codeEditor").addEventListener("input", () => {
+      if (currentLesson) {
+        progress.drafts[currentLesson.id] = $("#codeEditor").value;
+        saveProgress();
+      }
+    });
+    $("#completeButton").addEventListener("click", () => {
+      if (!currentLesson) return;
+      if (!progress.completed.includes(currentLesson.id)) progress.completed.push(currentLesson.id);
+      saveProgress();
+      $("#completeButton").textContent = "Урок завершён ✓";
+      $("#completeButton").classList.add("completed");
+      renderNavigation();
+    });
+    $("#previousButton").addEventListener("click", () => navigateLesson(-1));
+    $("#nextButton").addEventListener("click", () => navigateLesson(1));
+    renderNavigation();
+  </script>
+</body>
+</html>
